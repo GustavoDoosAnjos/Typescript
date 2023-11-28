@@ -1,55 +1,42 @@
-import { User } from '../models/User';
+import { User, UserProps } from '../models/User';
+import { View } from './View';
 
-export class UserForm {
-  constructor(public parent: Element, public user: User) {}
-
+export class UserForm extends View<User, UserProps> {
   eventsMap(): { [key: string]: () => void } {
     return {
       'click:.setAge': this.onSetAge,
+      'click:.setName': this.onSetName,
+      'click:.saveModel': this.onSaveModel,
     };
   }
 
-  onSetAge() {
-    const randomAge = Math.floor(Math.random() * 100);
+  onSetAge = (): void => {
+    this.model.setRandomAge();
+  };
 
-    this.user.set({ age: randomAge });
-  }
+  onSaveModel = (): void => {
+    this.model.save();
+  };
+
+  onSetName = (): void => {
+    const input = this.parent.querySelector('input');
+
+    if (input) {
+      const name = input.value;
+
+      this.model.set({ name });
+    }
+  };
 
   template(): string {
     return `
-            <div>
-                <h1>User Information:</h1><br>
+            <input type="text" id="name" name="name" placeholder="${this.model.get(
+              'name'
+            )}"><br>
 
-                <p>User name: ${this.user.get('name')}</p>
-                <p>User Age: ${this.user.get('age')}</p>
-            </div>
-
-            <label for="name">Name:</label><br>
-            <input type="text" id="name" name="name"><br>
-            <label for="age">Age:</label><br>
-            <input type="text" id="age" name="age"><br><br>
-
-            <button>Bijada</button>
-            <button class="setAge">randomAge</button>`;
-  }
-
-  bindEvents(fragment: DocumentFragment): void {
-    const eventsMap = this.eventsMap();
-
-    for (let eventKey in eventsMap) {
-      const [eventName, selector] = eventKey.split(':');
-
-      fragment.querySelectorAll(selector).forEach((element) => {
-        element.addEventListener(eventName, eventsMap[eventKey]);
-      });
-    }
-  }
-
-  render(): void {
-    const templateElement = document.createElement('template');
-    templateElement.innerHTML = this.template();
-
-    this.bindEvents(templateElement.content);
-    this.parent.append(templateElement.content);
+            <button class="setName">Change name</button>
+            <button class="setAge">Set random age</button>
+            <button class="saveModel">Save user</button>
+            `;
   }
 }
